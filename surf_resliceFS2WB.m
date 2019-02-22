@@ -15,7 +15,7 @@ function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
 %   'surf_files',{'',''}: Surface files to be resampled 
 %                       {'.white','.pial','.inflated','.sphere.reg','.sphere'};
 %   'curv_files',{'',''}: Curvature files to be resampled 
-%                       {'.curv','.sulc','.area'}; 
+%                       {'.curv','.sulc','.area'}
 % ---------------------------
 current_dir=pwd;
 
