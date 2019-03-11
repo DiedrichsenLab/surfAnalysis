@@ -1,11 +1,11 @@
-function M=surf_vol2surf(c1,c2,V,varargin)
-% function M=caret_vol2surf_own(c1,c2,V,varargin)
+function G=surf_vol2surf(c1,c2,V,varargin)
+% function G=surf_vol2surf(c1,c2,V,varargin)
 % Maps functional volume data onto a surface, defined by white and pial
 % surface
 % INPUTS:
 %   c1: Px3 Matrix of Node x,y,z coordinates on the white surface
 %   c2: Px3 Matrix of Node x,y,z coordinates on the pial surface
-%   V: List of volumes (spm_vol) to be mapped
+%   V:  List of volumes (spm_vol) to be mapped
 % VARARGIN:
 %   'ignore_zeros',0     : default none: should zeros be ignored (set to 1 for F and accuracy)
 %   'column_names'       : cell array of column_names for metric file
@@ -20,6 +20,7 @@ function M=surf_vol2surf(c1,c2,V,varargin)
 %                        necessary. (i.e. 0.9 means that the voxel has to
 %                        lie at least to 90% on one side of the sulcus to be included in the mapping
 %                        0 maps all voxels. 
+%    'anatomicalStruct'  : 'Cerebellum','CortexLeft','CortexRight'
 % OUTPUT:
 %    M                   : Gifti object- can be saved as a *.func.gii or *.label.gii file 
 % joern.diedrichsen@googlemail.com, Feb 2019
@@ -30,8 +31,8 @@ column_names={};        % Names of the mapped columns (defaults to
 depths=[0 0.2 0.4 0.6 0.8 1];
 interp=0;               % Interpolation type 0: Nearest Neighbour, 1: Trilinear
 stats=@(x)nanmean(x,2); % What statistics should be used for 
-
-vararginoptions(varargin,{'ignore_zeros','column_names','depths','interp','stats','exclude_thres','topo'});
+anatomicalStruct='CortexLeft'; 
+vararginoptions(varargin,{'ignore_zeros','column_names','depths','interp','stats','exclude_thres','topo','anatomicalStruct'});
 
 numPoints=length(depths);
 
@@ -179,8 +180,23 @@ if (isempty(column_names))
         if (~isempty(V{i}))
             [~,column_names{i},~]=spm_fileparts(V{i}.fname);
         else 
-            column_name{i}='void';
+            column_names{i}='void';
         end; 
     end;
 end;
-M=caret_struct('metric','data',M.data,'column_name',column_names);
+
+% Build a functional GIFTI structure
+this.metadata(1) = struct('name','AnatomicalStructurePrimary','value',anatomicalStruct);  
+this.metadata(2) = struct('name','encoding','value','XML_BASE64_GZIP'); 
+this.label.name  = {'???'}; 
+this.label.key   = 0; 
+this.label.rgba  = [1 1 1 0]; 
+for i=1:length(V) 
+    this.data{i}.data=single(M.data(:,i)); 
+    this.data{i}.metadata(1) = struct('name','Name','value',column_names{i});
+    this.data{i}.attributes.Dim=size(M.data,1);
+    this.data{i}.attributes.DataType = 'NIFTI_TYPE_FLOAT32'; 
+    this.data{i}.attributes.Intent   = 'NIFTI_INTENT_NONE'; 
+    this.data{i}.space=[]; 
+end; 
+G=gifti(this); 

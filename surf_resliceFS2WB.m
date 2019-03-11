@@ -4,6 +4,8 @@ function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
 % symmetric fs_LR_164 surface, standard in workbench.  
 % This allows things to happen exactly in atlas space - each vertex number
 % corresponds exactly to a anatomical location 
+% For more information, see 
+% https://wiki.humanconnectome.org/download/attachments/63078513/Resampling-FreeSurfer-HCP_5_8.pdf
 % INPUT: 
 %   subj: subject name
 %   subjects_dir: freesurfer's SUBJECT_DIR
@@ -98,7 +100,7 @@ for h=hemisphere
 
         A=gifti(out_name); 
         if (align_surf(i)) 
-            [A.vertices(:,1),A.vertices(:,2),A.vertices(:,3)]=spmj_affine_transform(A.vertices(:,1),A.vertices(:,2),A.vertices(:,3),Msurf2space);
+            [A.vertices(:,1),A.vertices(:,2),A.vertices(:,3)]=surf_affine_transform(A.vertices(:,1),A.vertices(:,2),A.vertices(:,3),Msurf2space);
         end; 
         save(A,out_name);
     end; 
