@@ -11,15 +11,15 @@ function G=surf_makeFuncGifti(data,varargin)
 %   G: Gifti object - save with save(G,'filename')
 
 anatomicalStruct = 'CortexLeft'; 
-column_names     = {}; 
+columnNames     = {}; 
 
-vararginoptions(varargin,{'anatomicalStruct','column_names'}); 
+vararginoptions(varargin,{'anatomicalStruct','columnNames'}); 
 
 [N,Q] = size(data);
 % Make column_names if empty 
-if (isempty(column_names))
+if (isempty(columnNames))
     for i=1:Q 
-        column_names{i}=sprintf('col_%d',i);
+        columnNames{i}=sprintf('col_%d',i);
     end; 
 end; 
         
@@ -30,7 +30,7 @@ this.label.key   = 0;
 this.label.rgba  = [1 1 1 0]; 
 for i=1:Q 
     this.data{i}.data=single(data(:,i)); 
-    this.data{i}.metadata(1) = struct('name','Name','value',column_names{i});
+    this.data{i}.metadata(1) = struct('name','Name','value',columnNames{i});
     this.data{i}.attributes.Dim=N;
     this.data{i}.attributes.DataType = 'NIFTI_TYPE_FLOAT32'; 
     this.data{i}.attributes.Intent   = 'NIFTI_INTENT_NONE'; 
