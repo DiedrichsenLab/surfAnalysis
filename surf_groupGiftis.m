@@ -37,7 +37,7 @@ for i=1:size(P,1)
     filename=deblank(P(i,:)); 
     if ~exist(filename,'file') 
         warning(sprintf('File %s does not exist: replaceing with NaNs',filename)); 
-        num_cols(i)=NaN;
+        numCols(i)=NaN;
         numRows(i)=NaN;
     else
         M{i}=gifti(filename);
@@ -76,7 +76,7 @@ end;
 
 % Reorder into new metric files 
 for file=1:length(inputcol) 
-    OutData=zeros(numrows,length(M))*NaN; 
+    OutData=zeros(numRows,length(M))*NaN; 
     for col=1:length(M)
         if (~isempty(M{col}.cdata))           % data is present 
             OutData(:,col)=M{col}.cdata(:,inputcol(file));
