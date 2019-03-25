@@ -76,7 +76,7 @@ end;
 
 % Reorder into new metric files 
 for file=1:length(inputcol) 
-    OutData=zeros(numRows,length(M))*NaN; 
+    OutData=zeros(numrows,length(M))*NaN; 
     for col=1:length(M)
         if (~isempty(M{col}.cdata))           % data is present 
             OutData(:,col)=M{col}.cdata(:,inputcol(file));
