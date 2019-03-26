@@ -46,10 +46,10 @@ def surf_groupGiftis(filelist,inputcol=np.array(),outcolnames=[],outfilenames=[]
     numrows = np.nanmean(numRows)
     
     #Get the input column names
-    inputColumnNames = surf_getGiftiColumnNames.getColumnNames(M[1])
+    inputColumnNames = surf_getGiftiColumnNames.getColumnNames(M[0])
     
     #Get main anatomical structure
-    anatStruct = surf_getGiftiAnatomicalStruct.getStruct(M[1])
+    anatStruct = surf_getGiftiAnatomicalStruct.getStruct(M[0])
     
     #Determine output column names
     if outcolnames.size == 0:
