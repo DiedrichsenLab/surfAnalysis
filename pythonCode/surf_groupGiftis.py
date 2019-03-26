@@ -8,6 +8,9 @@ Created on Mon Mar 25 08:36:34 2019
 import os
 import numpy as np
 import nibabel as nb
+import surf_makeFuncGifti
+import surf_getGiftiColumnNames
+import surf_getGiftiAnatomicalStruct
 
 
 def surf_groupGiftis(filelist,inputcol=np.array(),outcolnames=[],outfilenames=[],outfilenamePattern='%s.func.gii', groupsummary=[],groupstats=???):
