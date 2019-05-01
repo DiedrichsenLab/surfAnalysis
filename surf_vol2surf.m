@@ -3,28 +3,49 @@ function G=surf_vol2surf(c1,c2,V,varargin)
 % Maps functional volume data onto a surface, defined by white and pial
 % surface
 % INPUTS:
-%   c1: Px3 Matrix of Node x,y,z coordinates on the white surface
-%   c2: Px3 Matrix of Node x,y,z coordinates on the pial surface
+%   c1: Px3 Matrix of Vertices x,y,z coordinates on the white surface
+%   c2: Px3 Matrix of Vertices x,y,z coordinates on the pial surface
 %   V:  List of volumes (spm_vol) to be mapped
 % VARARGIN:
-%   'ignore_zeros',0     : default none: should zeros be ignored (set to 1 for F and accuracy)
+%   'ignore_zeros'       : should zeros be ignored? (default false. set to 1 for F and accuracy)
 %   'column_names'       : cell array of column_names for metric file
-%   'depths'             : Depth on the line for which to map 0:white/gray 1: pial
+%   'depths'             : Depths of points along line at which to map 0:white/gray 1: pial
 %   'hold'               : Interpolation: 0: nearest neighbour, 1:trilinear
 %   'stats'              : Statistics to be evaluated (default: @(x)nanmean(x,2))
 %                        : @(x)nanmean(x,2) default and used for activation data 
 %                        : @(x)mode(x,2) used when discrete labels are sampled. The most frequent label is assigned 
-%   'surf',surf          : Precaluclated standard surface for clustering
-%   'exclude_thres',thres: Threshold enables the exclusion of voxels that touch the surface in two distinct places - 
-%                        i.e. Voxels that lie in the middle of a sulcus. The threshold is the proportion of the bigger cluster
-%                        necessary. (i.e. 0.9 means that the voxel has to
-%                        lie at least to 90% on one side of the sulcus to be included in the mapping
-%                        0 maps all voxels. 
+%   'exclude_thres'      : Threshold enables the exclusion of voxels that touch the surface in two distinct places - 
+%                        i.e. Voxels that lie in the middle of a sulcus. If a voxel projects to two separate place 
+%                        on the surface, the algorithm excludes it, if the proportion of the bigger cluster
+%                        is smaller than the threshold. (i.e. threshold = 0.9 means that the voxel has to
+%                        lie at least to 90% on one side of the sulcus) 
+%    'faces'             : For threshold exclusion, you need to provide the
+%                           faces data from the surface (numFaces x 3 matrix)
 %    'anatomicalStruct'  : 'Cerebellum','CortexLeft','CortexRight'
 % OUTPUT:
 %    M                   : Gifti object- can be saved as a *.func.gii or *.label.gii file 
+% 
+%  Function enables mapping of volume-based data onto the vertices of a
+%  surface. For each vertex, the function samples the volume along the line 
+%  connecting the white and gray matter surfaces. The points along the line
+%  are specified in the variable 'depths'. default is to sample at 5
+%  locations between white an gray matter surface. Set 'depths' to 0 to
+%  sample only along the white matter surface, and to 0.5 to sample along
+%  the mid-gray surface. 
+%  The averaging across the sampled points for each vertex is dictated by
+%  the variable 'stats'. For functional activation, use 'mean' or
+%  'nanmean'. For discrete label data, use 'mode'. 
+%  If 'exclude_thres' is set to a value >0, the function will exclude voxels that 
+%  touch the surface at multiple locations - i.e. voxels within a sulcus
+%  that touch both banks. Set this option, if you strongly want to prevent
+%  spill-over of activation across sulci. Not recommended for voxels sizes
+%  larger than 3mm, as it leads to exclusion of much data. 
+% 
+%  For alternative functionality see wb_command volumne-to-surface-mapping 
+%  https://www.humanconnectome.org/software/workbench-command/-volume-to-surface-mapping
+% 
+% 
 % joern.diedrichsen@googlemail.com, Feb 2019
-
 ignore_zeros=0;         % In the volume-data, should zero be treated as NaNs? 
 exclude_thres=0;        % theshold to exclude voxels that lie within a sulcus 
 column_names={};        % Names of the mapped columns (defaults to 
@@ -32,7 +53,8 @@ depths=[0 0.2 0.4 0.6 0.8 1];
 interp=0;               % Interpolation type 0: Nearest Neighbour, 1: Trilinear
 stats=@(x)nanmean(x,2); % What statistics should be used for 
 anatomicalStruct='CortexLeft'; 
-vararginoptions(varargin,{'ignore_zeros','column_names','depths','interp','stats','exclude_thres','topo','anatomicalStruct'});
+faces = []; 
+vararginoptions(varargin,{'ignore_zeros','column_names','depths','interp','stats','exclude_thres','faces','anatomicalStruct'});
 
 numPoints=length(depths);
 
@@ -86,15 +108,10 @@ end;
 % the sulcus
 if (exclude_thres>0)
     exclude=zeros(prod(V{1}.dim),1);
-    if (isempty(topo))
-        error('provide topo file, if dual projections should be avoided');
+    if (isempty(faces))
+        error('provide topology data (faces), so that projections should be avoided');
     end;
-    if ischar(topo)
-        topo=caret_load(topo);
-        S.Tiles.data=topo.data;
-    else
-        S.Tiles.data=topo;
-    end;
+    S.Tiles.data=faces;
     
     % Precaluclate the Edges for fast cluster finding
     fprintf('Calculating Edges\n');
