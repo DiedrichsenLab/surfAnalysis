@@ -15,9 +15,11 @@ function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
 %   'hemisphere',[1 2]  : left / right or both hemispheres 
 %   'align_surf':       : Shift the surface to correct for freesurfer convention? 
 %   'surf_files',{'',''}: Surface files to be resampled 
-%                       {'.white','.pial','.inflated','.sphere.reg','.sphere'};
+%                       Default = {'.white','.pial','.inflated','.sphere.reg','.sphere'};
 %   'curv_files',{'',''}: Curvature files to be resampled 
-%                       {'.curv','.sulc','.area'}
+%                       Default = {'.curv','.sulc','.area'}
+%   'resolution',str    : Resolution can be either set to '164k' or '32k'.
+%                       Default =  '32k'
 % ---------------------------
 current_dir=pwd;
 
@@ -32,9 +34,10 @@ hemisphere=[1:2]; % Do both hemispheres
 surf_files={'.white','.pial','.inflated'};
 curv_files={'.curv','.sulc','.area'}; 
 smoothing=1; 
+resolution = '32k';
 align_surf=[1 1 1]; 
 
-vararginoptions(varargin,{'smoothing','surf_files','curv_files','hemisphere','align_surf'});
+vararginoptions(varargin,{'smoothing','surf_files','curv_files','hemisphere','align_surf','resolution'});
 
 % ----------------------------------------------------
 % read freesurfer version
@@ -83,15 +86,16 @@ Msurf2space=Mvox2space*inv(Mvox2surf);
 for h=hemisphere
     % Convert reg-sphere 
     reg_sphere = [hem{h} '.sphere.reg.surf.gii']; 
-    system(['mris_convert ' hem{h} '.sphere.reg ' reg_sphere]);
-    
+    if (~exist(reg_sphere,'file'))
+        system(['mris_convert ' hem{h} '.sphere.reg ' reg_sphere]);
+    end; 
     % -----------------------------------------------------
     % Do all the surface files 
     for i=1:length(surf_files)    
         % Set up file names 
         file_name = [hem{h} surf_files{i} '.surf.gii']; 
-        out_name = fullfile(new_dir,[subj_name '.' Hem{h} surf_files{i} '.164k.surf.gii']); 
-        atlas_name = fullfile(atlas_dir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.164k_fs_LR.surf.gii']);
+        out_name = fullfile(new_dir,[subj_name '.' Hem{h} surf_files{i} '.' resolution '.surf.gii']); 
+        atlas_name = fullfile(atlas_dir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.' resolution '_fs_LR.surf.gii']);
         
         % Convert surface to Gifti 
         system(['mris_convert ' hem{h} surf_files{i} ' ' file_name]);
@@ -110,8 +114,8 @@ for h=hemisphere
     for i=1:length(curv_files)    
         % Set up file names 
         file_name = [hem{h} curv_files{i} '.shape.gii']; 
-        out_name = fullfile(new_dir,[subj_name '.' Hem{h} curv_files{i} '.164k.shape.gii']); 
-        atlas_name = fullfile(atlas_dir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.164k_fs_LR.surf.gii']);
+        out_name = fullfile(new_dir,[subj_name '.' Hem{h} curv_files{i} '.' resolution '.shape.gii']); 
+        atlas_name = fullfile(atlas_dir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.' resolution '_fs_LR.surf.gii']);
         
         % Convert surface to Gifti 
         system(['mris_convert -c ' [hem{h} curv_files{i}] ' ' [hem{h} surf_files{1}] ' ' file_name]);

@@ -14,8 +14,10 @@ function G=surf_makeLabelGifti(data,varargin)
 
 anatomicalStruct = 'CortexLeft'; 
 columnNames     = {}; 
+labelRGBA       = []; 
+labelNames      = {}; 
 
-vararginoptions(varargin,{'anatomicalStruct','columnNames','labelNames'}); 
+vararginoptions(varargin,{'anatomicalStruct','columnNames','labelNames','labelRGBA'}); 
 
 [N,Q] = size(data);
 % Make column_names if empty 
@@ -31,7 +33,7 @@ this.label.name  = labelNames;
 this.label.key   = [0:numel(labelNames)-1]; 
 this.label.rgba  = labelRGBA; 
 for i=1:Q 
-    this.data{i}.data=single(data(:,i)); 
+    this.data{i}.data=int32(data(:,i)); 
     this.data{i}.metadata(1) = struct('name','Name','value',columnNames{i});
     this.data{i}.attributes.Dim=N;
     this.data{i}.attributes.DataType = 'NIFTI_TYPE_INT32'; 
