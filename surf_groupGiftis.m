@@ -68,8 +68,8 @@ anatomicalStruct = surf_getGiftiAnatomicalStruct(M{1});
 
 % Determine output column names 
 if (isempty(outcolnames))
-    for i=1:length(inputcol)
-        [a,b,c]=fileparts(P(col,:));
+    for i=1:length(M)
+        [a,b,c]=fileparts(P(i,:));
         outcolnames{i}=b;
     end; 
 end; 
