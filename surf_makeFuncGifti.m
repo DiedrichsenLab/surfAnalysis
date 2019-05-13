@@ -6,7 +6,7 @@ function G=surf_makeFuncGifti(data,varargin)
 % VARARGIN: 
 %   'anatomicalStruct': Anatomical Structure for header
 %                       'CortexLeft','CortexRight','Cerebellum' 
-%   'columnNames':      structure with names of columns
+%   'columnNames':    : Cell array of the names of different columns 
 % OUTPUT: 
 %   G: Gifti object - save with save(G,'filename')
 
