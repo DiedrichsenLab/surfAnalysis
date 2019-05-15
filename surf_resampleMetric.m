@@ -29,8 +29,9 @@ if~strcmp(ext,'.gii')
 end
 
 % load .metric file and convert to gifti
+anatomicalStruct = {'CortexLeft','CortexRight'};
 C = caret_load(inFile);
-G = surf_makeFuncGifti(C.data,'columnNames',C.column_name);
+G = surf_makeFuncGifti(C.data,'columnNames',C.column_name,'anatomicalStruct',anatomicalStruct{hemisphere});
 save(G,outFile); % convert metric file to gifti and save temporarily (we overwrite this with resampled metric)
 
 % filenames for inflated surface spheres (we align inSphere to outSphere and then resample inFile)
