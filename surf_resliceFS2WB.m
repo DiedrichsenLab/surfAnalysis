@@ -1,4 +1,4 @@
-function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
+function S=surf_resliceFS2WB(subj_name,subject_dir,out_dir,varargin);
 % functionsurf_resliceFS2WB(subj,subject_dir,atlas_dir,out_dir,varargin);
 % Resampels a registered subject surface from freesurfer average to the new
 % symmetric fs_LR_164 surface, standard in workbench.  
@@ -9,7 +9,6 @@ function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
 % INPUT: 
 %   subj: subject name
 %   subjects_dir: freesurfer's SUBJECT_DIR
-%   atlas_dir: Directory with files for the standard_mesh (Atlas_templates/standard_mesh)
 %   out_dir: The new resampled files will be placed in (out_dir/subj)
 % VARARGIN: 
 %   'hemisphere',[1 2]  : left / right or both hemispheres 
@@ -20,6 +19,7 @@ function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
 %                       Default = {'.curv','.sulc','.area'}
 %   'resolution',str    : Resolution can be either set to '164k' or '32k'.
 %                       Default =  '32k'
+%   'atlas_dir'         : Directory that contains standard meshes   
 % ---------------------------
 current_dir=pwd;
 
@@ -39,6 +39,8 @@ align_surf=[1 1 1];
 
 vararginoptions(varargin,{'smoothing','surf_files','curv_files','hemisphere','align_surf','resolution'});
 
+% Find the standard meshes in the repository directory 
+repro_dir=fileparts(which('surf_resliceFS2WB'));
 % ----------------------------------------------------
 % read freesurfer version
 ver_file = fullfile(getenv('FREESURFER_HOME'),'build-stamp.txt');
@@ -95,7 +97,7 @@ for h=hemisphere
         % Set up file names 
         file_name = [hem{h} surf_files{i} '.surf.gii']; 
         out_name = fullfile(new_dir,[subj_name '.' Hem{h} surf_files{i} '.' resolution '.surf.gii']); 
-        atlas_name = fullfile(atlas_dir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.' resolution '_fs_LR.surf.gii']);
+        atlas_name = fullfile(repro_dir,'standard_mesh','resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.' resolution '_fs_LR.surf.gii']);
         
         % Convert surface to Gifti 
         system(['mris_convert ' hem{h} surf_files{i} ' ' file_name]);
@@ -115,7 +117,7 @@ for h=hemisphere
         % Set up file names 
         file_name = [hem{h} curv_files{i} '.shape.gii']; 
         out_name = fullfile(new_dir,[subj_name '.' Hem{h} curv_files{i} '.' resolution '.shape.gii']); 
-        atlas_name = fullfile(atlas_dir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.' resolution '_fs_LR.surf.gii']);
+        atlas_name = fullfile(repro_dir,'standard_mesh','resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{h} '.sphere.' resolution '_fs_LR.surf.gii']);
         
         % Convert surface to Gifti 
         system(['mris_convert -c ' [hem{h} curv_files{i}] ' ' [hem{h} surf_files{1}] ' ' file_name]);
