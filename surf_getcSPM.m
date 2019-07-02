@@ -13,14 +13,8 @@ function cSPM=surf_getcSPM(type,varargin)
 %                       The intercept term will be added, unless otherwise
 %                       specified
 %   varargin: 
-%       'data',filename,columns: 
-%                       Specifies where the data comes from. To concatinate
-%                       data from different files, just repeat the argument
-%                       IMPORTANT: If you want to exclude subjects from
-%                       your surface analysis, please just skip the columns
-%                       here. 
 %       'data',matrix: 
-%                       Specifies data directly. 
+%                       Specify data in a matrix format. 
 %       'Z_P':          adds to each contrast a Normal value, corresponding to the
 %                       p-value of the contrast
 %       'delta':        add to each contrast the effect-size (mean/SD) for
@@ -34,9 +28,7 @@ function cSPM=surf_getcSPM(type,varargin)
 %                       if not specified, assume identity matrix 
 % OUTPUT: 
 %       cSPM.
-%       cSPM.
-%       cSPM.
-%       cSPM. 
+
 % _________________________________________________________________
 % Adapted from caret_getcSPM function (EBerlot, May 2019)
 % jdiedric@uwo.ca
@@ -64,25 +56,9 @@ while c<=length(varargin)
         case 'no_intercept'
             is_intercept=0;    
             c=c+1;
-        case 'data'
-            if (ischar(varargin{c+1}))
-                try 
-                    filename=varargin{c+1};
-                    columns=varargin{c+2};
-                catch 
-                    error('Syntax: surf_getcSPM(type,"data",filename,columns,...)');    
-                end;
-                M=caret_load(filename);
-                if (isempty(columns))
-                    columns=[1:M.num_cols];
-                end;
-                cSPM.data=[cSPM.data M.data(:,columns)];
-                clear M;
-                c=c+3;
-            elseif (isnumeric(varargin{c+1}))
-                cSPM.data=varargin{c+1};
-                c=c+2;
-            end; 
+        case 'data'   
+            cSPM.data=varargin{c+1};
+            c=c+2;
         case 'Z_P'             % Compute and write out the z-value corresponding to the P-value
             z_p=1;
             c=c+1;
@@ -104,12 +80,10 @@ N=size(cSPM.data,2);  % Number of available data points
 % Check how much data I have at each Node to be able to use the
 % maskthreshold 
 % This assumes that 0 and NaNs are missing values 
-
 miss=sum(isnan(cSPM.data) | cSPM.data==0.0,2);
 cSPM.N=N-miss; 
 indx=find(isnan(cSPM.data));
 cSPM.data(indx)=0;
-
 switch (type)
     case 'onesample_t'
         X=ones(N,1);cSPM.X=X;
