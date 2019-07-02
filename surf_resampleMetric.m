@@ -14,8 +14,8 @@ function surf_resampleMetric(hemisphere,inFile,outFile,atlasDir,varargin)
 %                  metric file. '32k', or '164k' (default = '32k')
 % SArbuckle 05/2019
 
-surf = '32k';
-vararginoptions(varargin,{'surf'});
+resolution = '32k';
+vararginoptions(varargin,{'resolution'});
 
 
 % error handling
@@ -37,7 +37,7 @@ save(G,outFile); % convert metric file to gifti and save temporarily (we overwri
 % filenames for inflated surface spheres (we align inSphere to outSphere and then resample inFile)
 Hem       = {'L','R'}; 
 inSphere  = fullfile(atlasDir,['fs_' Hem{hemisphere}],['fsaverage.' Hem{hemisphere} '.sphere.164k_fs_' Hem{hemisphere} '.surf.gii']);
-outSphere = fullfile(atlasDir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{hemisphere} '.sphere.' surf '_fs_LR.surf.gii']);
+outSphere = fullfile(atlasDir,'resample_fsaverage',['fs_LR-deformed_to-fsaverage.' Hem{hemisphere} '.sphere.' resolution '_fs_LR.surf.gii']);
 
 % do resampling of metric file
 system(['wb_command -metric-resample ' outFile ' ' inSphere ' ' outSphere ' ADAP_BARY_AREA ' outFile ' -area-surfs ' inSphere ' ' outSphere]);
