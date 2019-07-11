@@ -1,18 +1,18 @@
 function surf_resamplePaint(hemisphere,inFile,outFile,atlasDir,varargin)
-% function G=surf_resampleMetric(data,varargin)
+% function G=surf_resamplePaint(data,varargin)
 % Builds a label.gii structure and resamples it to target
 % atlas space.
 % / / / / /
 % INPUT: 
 %   hemisphere :  left(1) or right(2). Currently no support to do both in one call
-%   inFile     :  Filename of metric file to be resampled
-%   outFile    :  Filename of metric file that has been resampled.
+%   inFile     :  Filename of paint file to be resampled
+%   outFile    :  Filename of label.gii file that has been resampled.
 %   atlasDir   :  Directory with files for the standard_mesh (Atlas_templates/standard_mesh)
 % / / / / /
 % VARARGIN: 
 %   'resolution' :  Number of vertices in surface which we use to resample
-%                  metric file. '32k', or '164k' (default = '32k')
-% SArbuckle 05/2019
+%                  label file. '32k', or '164k' (default = '32k')
+% SArbuckle 07/2019
 
 resolution = '32k';
 vararginoptions(varargin,{'resolution'});
