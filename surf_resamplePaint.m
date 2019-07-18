@@ -30,7 +30,8 @@ end
 
 % load .metric file 
 C = caret_load(inFile);
-nLabel = length(unique(C.data)); % number of unique labels
+%nLabel = length(unique(C.data)); % number of unique labels
+nLabel = numel(C.paintnames);
 % check for invalid text characters in paintnames field
 for i = 1:nLabel
     tf = isstrprop(C.paintnames{i},'punct');
