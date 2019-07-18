@@ -30,17 +30,32 @@ end
 
 % load .metric file 
 C = caret_load(inFile);
-%nLabel = length(unique(C.data)); % number of unique labels
-nLabel = numel(C.paintnames);
+% check how many rois we have, and how many roi labels we have
+rois     = unique(C.data);
+numROI   = numel(rois);
+numLabel = numel(C.paintnames); % number of unique labels
+% if # rois and # labels don't match, assume no column for 'empty' roi
+if numLabel~=numROI
+    if numLabel+1 == numROI
+        newLabels{1} = '';
+        for i = 1:numLabel
+            newLabels{end+1} = C.paintnames{i};
+        end
+        C.paintnames = newLabels;
+        numLabel = numLabel+1;
+    else
+       error('number of labels and number of rois in inFile don''t match.') 
+    end
+end
 % check for invalid text characters in paintnames field
-for i = 1:nLabel
+for i = 1:numLabel
     tf = isstrprop(C.paintnames{i},'punct');
     C.paintnames{i}(tf) = '';
 end
 % set colors
-rgb = hsv(nLabel);
-rgb = rgb(randperm(nLabel),:); % shuffle the order so it's more visible
-% assume empty paintnames ('???') are not labelled and so color set to
+rgb = hsv(numLabel);
+rgb = rgb(randperm(numLabel),:); % shuffle the order so it's more visible
+% assume empty paintnames ('???' or '') are not labelled and so color set to
 % totally transparent
 transparent = double(cellfun(@(x) ~isempty(x),C.paintnames))';
 rgba = [rgb, transparent];
