@@ -1,6 +1,6 @@
 function G=surf_makeLabelGifti(data,varargin)
-% function G=surf_makeFuncGifti(data,varargin)
-% Builds a functional funtional GIFTI structure from scratch for saving 
+% function G=surf_makeLabelGifti(data,varargin)
+% Builds a Label GIFTI structure from scratch for saving 
 %
 % INPUT: 
 %   data: N x Q data matrix: N:number of nodes, Q: number of data series
