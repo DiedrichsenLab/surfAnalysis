@@ -29,19 +29,19 @@ cd(atlasDir);
 h=1;
 G = gifti(sprintf('fs_LR.%dk.%s.sphere.surf.gii',res,hem{h}));
 [x,y,z,~] = make_icosahedron(freq,radius,1,0,1); % make icosahedron
-DT = delaunayTriangulation(x',y',z'); % triangulate again (Matlab framework)
-[T,Xb] = freeBoundary(DT);
-TR = triangulation(T,Xb);
-nCentr = size(TR.Points,1);
+points = [x;y;z]'; 
+nCentr = size(points,1);
+distMat=zeros(nCentr,size(G.vertices,1)); % Preallocate for speed 
 for i=1:nCentr
-    distMat(i,:)=sqrt(sum(bsxfun(@minus,G.vertices,TR.Points(i,:)).^2,2)); % squared Euclidean distance
+    distMat(i,:)=sqrt(sum(bsxfun(@minus,G.vertices,points(i,:)).^2,2)); % squared Euclidean distance
 end
 % find minimal distance and assign the label of that centroid
 [~,centr]=min(distMat);
+
 % number of vertices per centroid
 nVert1 = [[0;unique(centr)'] [0;hist(centr,unique(centr))']]; % add 0
 % add a medial wall (overwrite any previous tessel)
-M = gifti(sprintf('Yeo_JNeurophysiol11_7Networks.%dk.%s.label.gii',res,hem{h}));
+M = gifti(sprintf('Yeo_JNeurophysiol11_7Networks.%dk.L.label.gii',res));  % Always use left media, wall 
 centr(M.cdata==0)=0;
 % find now new number of vertices per centroid
 nVert2 = [unique(centr)' hist(centr,unique(centr))'];
