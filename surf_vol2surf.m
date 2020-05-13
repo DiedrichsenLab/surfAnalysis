@@ -1,4 +1,4 @@
-function G=surf_vol2surf(c1,c2,V,varargin)
+function [G,D]=surf_vol2surf(c1,c2,V,varargin)
 % function G=surf_vol2surf(c1,c2,V,varargin)
 % Maps functional volume data onto a surface, defined by white and pial
 % surface
@@ -24,6 +24,13 @@ function G=surf_vol2surf(c1,c2,V,varargin)
 %    'anatomicalStruct'  : 'Cerebellum','CortexLeft','CortexRight'
 % OUTPUT:
 %    M                   : Gifti object- can be saved as a *.func.gii or *.label.gii file 
+%    D:         Data structure that contains sparse double [numVox x numNodes] that counts the number of
+%               times each voxel is sampled to each node. For example,...
+%               ...if voxel 1 is sampled 6x to node 1 (i.e. the same voxel
+%               is sampled for each sampling depth), vox2Node(1,1) = 6.
+%               Included in this datastructure are the node IDs and the
+%               linear voxel indicies. Voxels that are not sampled into
+%               surface are dropped from this matrix.
 % 
 %  Function enables mapping of volume-based data onto the vertices of a
 %  surface. For each vertex, the function samples the volume along the line 
@@ -46,6 +53,7 @@ function G=surf_vol2surf(c1,c2,V,varargin)
 % 
 % 
 % joern.diedrichsen@googlemail.com, Feb 2019
+% saarbuckle, May 2020: added vox2Node output structure D
 ignore_zeros=0;         % In the volume-data, should zero be treated as NaNs? 
 exclude_thres=0;        % theshold to exclude voxels that lie within a sulcus 
 column_names={};        % Names of the mapped columns (defaults to 
@@ -190,6 +198,26 @@ for v=1:length(V);
         M.data(:,v)=nan(size(c1,1),1); 
     end; 
 end;
+
+% Calc vox2node sparse matrix: (SA 05/2020)
+% We will find which node each vertex maps onto, re-counting a voxel if it
+% is mapped multiple times to same node (b/c sampling can occur at multiple
+% depths)
+maxVoxID  = max(indices(:)); % # unique voxels
+maxNodeID = size(c1,1);      % # unique nodes
+vecNodes  = [1:maxNodeID];   % vector of nodes
+notNan    = ~isnan(indices(:,1)); % for the first sampling depth, how many nodes have voxels?
+vox2Node  = sparse(indices(notNan,1), vecNodes(notNan), ones(sum(notNan),1), maxVoxID, maxNodeID); % sparse matrix of voxel to node mapping for first sampling depth
+for jj = 2:numPoints % update vox2Node sparse matrix for each subsequent sampling depth:
+    notNan = ~isnan(indices(:,jj)); % for the subsequent sampling depth, how many nodes have voxels?
+    vox2Node = sparse(indices(notNan,jj), vecNodes(notNan), ones(sum(notNan),1), maxVoxID, maxNodeID) + vox2Node;
+end
+% Some nodes are empty, but don't drop those from the metric file.
+% However, we drop empty voxels from the sparse connection matrix:
+keepVox = find(sum(vox2Node,2)~=0);
+D.vox2Node = vox2Node(keepVox,:);
+D.linVoxID = keepVox';
+D.nodeID   = 1:maxNodeID;
 
 % Determine the column names based on the filenames of the volumes
 if (isempty(column_names))
