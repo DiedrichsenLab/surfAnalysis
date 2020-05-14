@@ -200,24 +200,22 @@ for v=1:length(V);
 end;
 
 % Calc vox2node sparse matrix: (SA 05/2020)
-% We will find which node each vertex maps onto, re-counting a voxel if it
+% We will find which node each voxel maps onto, re-counting a voxel if it
 % is mapped multiple times to same node (b/c sampling can occur at multiple
 % depths)
-maxVoxID  = max(indices(:)); % # unique voxels
-maxNodeID = size(c1,1);      % # unique nodes
-vecNodes  = [1:maxNodeID];   % vector of nodes
-notNan    = ~isnan(indices(:,1)); % for the first sampling depth, how many nodes have voxels?
-vox2Node  = sparse(indices(notNan,1), vecNodes(notNan), ones(sum(notNan),1), maxVoxID, maxNodeID); % sparse matrix of voxel to node mapping for first sampling depth
-for jj = 2:numPoints % update vox2Node sparse matrix for each subsequent sampling depth:
-    notNan = ~isnan(indices(:,jj)); % for the subsequent sampling depth, how many nodes have voxels?
-    vox2Node = sparse(indices(notNan,jj), vecNodes(notNan), ones(sum(notNan),1), maxVoxID, maxNodeID) + vox2Node;
-end
+maxVoxID  = numel(X);   % # unique voxels
+maxNodeID = size(c1,1); % # unique nodes
+matNodes  = repmat(1:maxNodeID,numPoints,1)';   % vector of node ids sized to match indices matrix
+vox2Node  = sparse(indices(i), matNodes(i), ones(size(i)), maxVoxID, maxNodeID); 
+vox2Node  = vox2Node * diag(sparse(1./sum(vox2Node,1))); % normalize each column (node) to 1:
 % Some nodes are empty, but don't drop those from the metric file.
 % However, we drop empty voxels from the sparse connection matrix:
 keepVox = find(sum(vox2Node,2)~=0);
 D.vox2Node = vox2Node(keepVox,:);
 D.linVoxID = keepVox';
 D.nodeID   = 1:maxNodeID;
+% vox2Node'*X(:); % to check. BUT, not that vox2Node cannot deal with
+% voxels with vals==nan
 
 % Determine the column names based on the filenames of the volumes
 if (isempty(column_names))
