@@ -22,14 +22,16 @@ labelNames      = {};
 vararginoptions(varargin,{'anatomicalStruct','columnNames','labelNames','labelRGBA'}); 
 
 [N,Q] = size(data);
-nLabel = length(unique(data)); % number of unique labels
+keys   = unique(data)'; 
+nLabel = length(keys); % number of unique labels
 % Create naming and coloring if not given:
 % 1) Make column_names if empty 
 if (isempty(columnNames))
     for i=1:nLabel
         columnNames{i}=sprintf('col_%d',i);
-    end; 
-end; 
+    end 
+end 
+
 % 2) Determine color scale if empty
 if (isempty(labelRGBA))
     col = hsv(nLabel);
@@ -37,19 +39,22 @@ if (isempty(labelRGBA))
     labelRGBA = zeros(nLabel,4);
     for i=1:nLabel
         labelRGBA(i,:)=[col(i,:) 1];
-    end; 
+    end 
 end
+
 % 3) Give label names
 if (isempty(labelNames))
     for i=1:nLabel
         labelNames{i}=sprintf('label-%d',i);
-    end; 
+    end
 end
+
+
 % Create the label.gii structure
 this.metadata(1) = struct('name','AnatomicalStructurePrimary','value',anatomicalStruct);  
 this.metadata(2) = struct('name','encoding','value','XML_BASE64_GZIP'); 
 this.label.name  = labelNames; 
-this.label.key   = [0:numel(labelNames)-1]; 
+this.label.key   = keys; 
 this.label.rgba  = labelRGBA; 
 for i=1:Q 
     this.data{i}.data=int32(data(:,i)); 
