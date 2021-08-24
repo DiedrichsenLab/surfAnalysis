@@ -193,12 +193,15 @@ for v=1:length(V);
             X(X==0)=NaN;
         end;
         data(i)=X(indices(i));
+        if (mod(v,20)==0)
+            fprintf('.');
+        end; 
         M.data(:,v)=stats(data);
     else 
         M.data(:,v)=nan(size(c1,1),1); 
     end; 
 end;
-
+fprintf('\n');
 % Calc vox2node sparse matrix: (SA 05/2020)
 % We will find which node each voxel maps onto, re-counting a voxel if it
 % is mapped multiple times to same node (b/c sampling can occur at multiple
@@ -206,7 +209,7 @@ end;
 maxVoxID  = numel(X);   % # unique voxels
 maxNodeID = size(c1,1); % # unique nodes
 matNodes  = repmat(1:maxNodeID,numPoints,1)';   % vector of node ids sized to match indices matrix
-vox2Node  = sparse(indices(i), matNodes(i), ones(size(i)), maxVoxID, maxNodeID); 
+vox2Node  = sparse(double(indices(i)), matNodes(i), ones(size(i)), maxVoxID, maxNodeID); 
 vox2Node  = vox2Node * diag(sparse(1./sum(vox2Node,1))); % normalize each column (node) to 1:
 % Some nodes are empty, but don't drop those from the metric file.
 % However, we drop empty voxels from the sparse connection matrix:
