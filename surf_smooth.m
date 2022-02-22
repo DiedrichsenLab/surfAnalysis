@@ -30,11 +30,12 @@ N   = size(P,1);
 Out = cell(1,N);
 for i=1:N 
     [dir,name,postfix]=fileparts(deblank(P(i,:)));
-    Out{i}=fullfile(dir,[prefix name postfix]); 
+    Out{i}=fullfile(dir,[prefix name postfix]);
     comm=sprintf('wb_command -metric-smoothing %s %s %f %s -fix-zeros',...
-                surf,P,kernel,Out{i});
-    fprintf('%s\n',comm) 
+        surf,P,kernel,Out{i});
+    %fprintf('%s\n',comm) 
     [err,out]=system(comm);
-    fprintf('Smoothed file %s\n%d:%s\n',[name postfix],err,out);
+    fprintf('\nSmoothed file %s\n%d:%s\n',[name postfix],err,out);
+    %fprintf('Smoothed file %s\n',[name postfix]);
 end;
 

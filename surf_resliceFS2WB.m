@@ -1,4 +1,4 @@
-function S=surf_resliceFS2WB(subj_name,subject_dir,out_dir,varargin);
+function S=surf_resliceFS2WB(subj_name,subject_dir,atlas_dir,out_dir,varargin);
 % functionsurf_resliceFS2WB(subj,subject_dir,atlas_dir,out_dir,varargin);
 % Resampels a registered subject surface from freesurfer average to the new
 % symmetric fs_LR_164 surface, standard in workbench.  
@@ -40,7 +40,8 @@ align_surf=[1 1 1];
 vararginoptions(varargin,{'smoothing','surf_files','curv_files','hemisphere','align_surf','resolution'});
 
 % Find the standard meshes in the repository directory 
-repro_dir=fileparts(which('surf_resliceFS2WB'));
+%repro_dir=fileparts(which('surf_resliceFS2WB'));
+repro_dir=atlas_dir;
 % ----------------------------------------------------
 % read freesurfer version
 ver_file = fullfile(getenv('FREESURFER_HOME'),'build-stamp.txt');
@@ -82,7 +83,6 @@ A=sscanf(result,'%f');
 Mvox2space=reshape(A,4,4)';
 Msurf2space=Mvox2space*inv(Mvox2surf);
     
-
 % -----------------------------------------------------
 % Transform the surfaces from the two hemispheres 
 for h=hemisphere

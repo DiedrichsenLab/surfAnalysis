@@ -8,7 +8,7 @@ function [Y, P, coord] = surf_cross_section(surface, data, varargin)
 %               coordinates are (Nx3), with the last column being all
 %               zeros.
 %   data    :   Name of gifti file to be sampled from. Can be metric,
-%               coord, RBG, or paint like type of file.
+%               coord, RBG, sulc (nii), or paint like type of file.
 %
 % VARARGIN:
 %   border  :   Name of border file (may contain more than one border). If
@@ -18,20 +18,20 @@ function [Y, P, coord] = surf_cross_section(surface, data, varargin)
 %               metric file of the border vertices. By default, the file is
 %               generated with the same name as the border file, and
 %               automatically deleted.
-%   con_map :   Specifies which of the contrast maps to sample from
-%               (default is all of the ones in gifti file)
-%   b_name  :   If provided, only one border (specified by b_name) is used
-%               for cross-section. By default, each border in border file
-%               is used.
+%   con_map :   Specifies which of the contrast maps (one per subject) to
+%               sample from (default is all of the subj maps in .gii file).
+%   b_name  :   If provided (string), only the border specified by b_name
+%               is used for cross-section. By default (not specified),
+%               every border in border file is used.
 %   from,to :   If provided, this function will ignore (nor need) a
 %               specified border. It will instead use a virtual strip for
 %               the cross-section on *flat.surf.gii defined from flat
-%               coordinates "from" (2x1) to coordinates "to" (2x1), with
-%               the width of the strip being defined by "width" (in mm)
-%               above and below the virtual line where we sample from.
-%   width   :   Either width of the sampling along the provided border
-%               (default is 1),  or width of the strip being defined by 2x1
-%               coordinates "from" and "to".
+%               coordinates "from" and "to" (1x2 array each), with the
+%               width of the strip being defined by "width" (in mm) above
+%               and below the virtual line where we sample from.
+%   width   :   Either width (in mm) of the sampling along the provided
+%               border (default is 1 mm), or width of the strip being
+%               defined by "from" and "to" coordinates.
 %   n_point :   Number of points on for the sampling on the virtual strip
 %               (default is 101).
 %
@@ -45,7 +45,7 @@ function [Y, P, coord] = surf_cross_section(surface, data, varargin)
 % _________________________________________________________________
 % Adapted from caret_crosssection and including options from
 % caret_crosssection_flat (Joern Diedrichsen 2013)
-% Last change: GA - 2019.05.24
+% Last change: GA - 2020.11.13
 
 % Defaults
 border  = [];
@@ -60,6 +60,15 @@ vararginoptions(varargin, {'border', 'outname', 'con_map', 'b_name', 'from', 'to
 
 if isempty(surface) || isempty(data)
     error('This function needs a flat surface (.gii) and a metric file (.gii) to sample from.');
+end
+
+% Convert niftis into giftis (for sulcal depth info)
+[dir,name,ext]=fileparts(data);
+if strcmp(ext, '.nii')
+    cifti_in  = [dir, '/', name, ext];
+    gifti_out = [dir, '/', name '.gii'];
+    system(['wb_command -cifti-convert -to-gifti-ext ' cifti_in ' ' gifti_out]);
+    data = gifti_out;
 end
 
 % Decide whether to use border or virtual strip option
@@ -85,7 +94,7 @@ if ~isempty(border) % Border file
     
     % Load border metric file
     B = gifti(outname);
-        
+    
     % Load data metric file
     D = gifti(data);
     
@@ -93,14 +102,53 @@ if ~isempty(border) % Border file
     flat_coord = gifti(surface);
     T = flat_coord.vertices;
     
-    % Perform cross-section
+    %     % Perform cross-section
+    %     if ~isempty(con_map)
+    %         Y = D.cdata(B.cdata==1, con_map);
+    %     else
+    %         Y = D.cdata(B.cdata==1, :);
+    %     end
+    %     P = B.cdata;
+    %     coord = T(B.cdata==1, :);
+    
+    % Find points on the border
+    idx = find(B.cdata==1);
+    n_point = numel(idx);
+    
+    % Preallocate
     if ~isempty(con_map)
-        Y = D.cdata(B.cdata==1, con_map);
+        Y = zeros(n_point-1, numel(con_map));
     else
-        Y = D.cdata(B.cdata==1, :);
+        Y = zeros(n_point-1, size(D.cdata,2));
     end
-    P = B.cdata;
-    coord = T(B.cdata==1, :);
+    P = zeros(size(T,1),1);
+    coord = zeros(n_point-1, size(T,2));
+    
+    % For every 2 points compute the distance and cross section
+    for i=1:n_point-1
+        from     = T(idx(i), 1:2);
+        to       = T(idx(i+1), 1:2);
+        vec      = to-from;  % This is the strip vector
+        points   = bsxfun(@minus, T(:,1:2), from);
+        project  = (points*vec') ./ (vec*vec');
+        residual = points - bsxfun(@times, project, vec);
+        distance = sqrt(sum(residual.^2,2));
+        
+        % Find the vertices on the border
+        x           = linspace(0,1,n_point);
+        indx        = find(distance<width & project>=x(i) & project<=x(i+1) & sum(T(:,1:2).^2,2)>0);
+        % Perform cross-section (contrast map optional)
+        if ~isempty(con_map)
+            Y(i,:)  = nanmean(D.cdata(indx, con_map));
+        else
+            Y(i,:)  = nanmean(D.cdata(indx, :));
+        end
+        P(indx,1)   = 1;
+        coord(i,:)  = nanmean(T(indx,:));
+    end
+    notnan = ~isnan(Y(:,1));
+    Y =         Y(notnan, :);
+    coord = coord(notnan, :);
     
     % Delete border metric file
     if saveout==0
@@ -108,23 +156,23 @@ if ~isempty(border) % Border file
     end
     
 else % Virtual strip
-    if ~isempty(from) 
+    if ~isempty(from)
         if isempty(to)
             error('If you specified the "from" coordinates, you also need to specify the "to" coordinates.');
         end
     else % (Defaults)
-        warning('No border file or coordinates provided!  Going with default option of virtual strip (10 mm) from coord [-23 80] to coord [124 85].');
+        warning('No border file or coordinates provided! Going with default option of virtual strip (10 mm) from coord [-23 80] to coord [124 85].');
         from  = [-23 80];
         to    = [124 85];
         width = 10;
     end
     
+    % Load data metric file
+    D = gifti(data);
+    
     % Load flat surface coordinate data
     flat_coord = gifti(surface);
     T = flat_coord.vertices;
-    
-    % Load data metric file
-    D = gifti(data);
     
     % Find points on the virtual strip
     vec      = to-from;  % This is the strip vector
@@ -147,9 +195,9 @@ else % Virtual strip
         indx        = find(distance<width & project>=x(i) & project<=x(i+1) & sum(T(:,1:2).^2,2)>0);
         % Perform cross-section (contrast map optional)
         if ~isempty(con_map)
-            Y(i,:)  = mean(D.cdata(indx, con_map));
+            Y(i,:)  = nanmean(D.cdata(indx, con_map));
         else
-            Y(i,:)  = mean(D.cdata(indx, :));
+            Y(i,:)  = nanmean(D.cdata(indx, :));
         end
         P(indx,1)   = 1;
         coord(i,:)  = mean(T(indx,:));
