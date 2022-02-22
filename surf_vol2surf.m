@@ -119,7 +119,7 @@ if (exclude_thres>0)
     if (isempty(faces))
         error('provide topology data (faces), so that projections should be avoided');
     end;
-    S.Tiles.data=faces;
+    S.Tiles.data=double(faces); % GA: leaving without conversion to double returns error with function sparse below
     
     % Precaluclate the Edges for fast cluster finding
     fprintf('Calculating Edges\n');
@@ -184,18 +184,17 @@ if (exclude_thres>0)
 end;
 
 i=find(~isnan(indices));
-data=zeros(size(indices))*NaN;
-
+%data=zeros(size(indices))*NaN; %GA: Workbench doesn't know to ignore NaNs
+%(as SPM does), but it ignores zeros instead (see changes below)
+data=zeros(size(indices));
 for v=1:length(V);
     if (~isempty(V{v}))
         X=spm_read_vols(V{v});
-        if (ignore_zeros(v))
-            X(X==0)=NaN;
-        end;
-        data(i)=X(indices(i));
-        if (mod(v,20)==0)
-            fprintf('.');
-        end; 
+        %         if (ignore_zeros(v)) %GA
+        %             X(X==0)=NaN;
+        %         end;
+        X(isnan(X))=0; %GA
+        data(i)=X(indices(i)); %GA
         M.data(:,v)=stats(data);
     else 
         M.data(:,v)=nan(size(c1,1),1); 
