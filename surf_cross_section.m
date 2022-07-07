@@ -14,12 +14,6 @@ function [Y, P, coord] = surf_cross_section(surface, data, varargin)
 %   border  :   Name of border file (may contain more than one border). If
 %               not specified, it will use the virtual strip option (see
 %               below in VARARGIN) with default coordinates instead.
-%   outname :   If provided output file name, this function will generate a
-%               metric file of the border vertices. By default, the file is
-%               generated with the same name as the border file, and
-%               automatically deleted.
-%   con_map :   Specifies which of the contrast maps (one per subject) to
-%               sample from (default is all of the subj maps in .gii file).
 %   b_name  :   If provided (string), only the border specified by b_name
 %               is used for cross-section. By default (not specified),
 %               every border in border file is used.
@@ -34,6 +28,12 @@ function [Y, P, coord] = surf_cross_section(surface, data, varargin)
 %               defined by "from" and "to" coordinates.
 %   n_point :   Number of points on for the sampling on the virtual strip
 %               (default is 101).
+%   outname :   If provided output file name, this function will generate a
+%               metric file of the border vertices. By default, the file is
+%               generated with the same name as the border file, and
+%               automatically deleted.
+%   con_map :   Specifies which of the contrast maps (one per subject) to
+%               sample from (default is all of the subj maps in .gii file).
 %
 % OUTPUT:
 %   Y       :   sampled data (NxQ) along the borders vertices
@@ -42,6 +42,11 @@ function [Y, P, coord] = surf_cross_section(surface, data, varargin)
 %
 % To get the coordinates for the sampled points, sample also from the
 % respective coord file.
+% 
+% EXAMPLE: 
+% surf_cross_section('flat.surf.gii','func.gii',...
+%             'from',[-23 80],'to',[124 85], ...
+%             'width',10);
 % _________________________________________________________________
 % Adapted from caret_crosssection and including options from
 % caret_crosssection_flat (Joern Diedrichsen 2013)
