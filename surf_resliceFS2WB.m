@@ -35,13 +35,15 @@ curv_files={'.curv','.sulc','.area'};
 smoothing=1; 
 resolution = '32k';
 align_surf=[1 1 1]; 
+atlas_dir = []; 
 
-vararginoptions(varargin,{'smoothing','surf_files','curv_files','hemisphere','align_surf','resolution'});
+vararginoptions(varargin,{'smoothing','surf_files','curv_files',...
+    'hemisphere','align_surf','resolution','atlas_dir'});
 
 % Find the standard meshes in the repository directory 
 if isempty(atlas_dir)
     repro_dir=fileparts(which('surf_resliceFS2WB'));
-    atlas_dir = full_file(repro_dir,'standard_mesh');
+    atlas_dir = fullfile(repro_dir,'standard_mesh');
 end
 % ----------------------------------------------------
 % read freesurfer version
