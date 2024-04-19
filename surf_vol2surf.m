@@ -23,7 +23,7 @@ function [G,D]=surf_vol2surf(c1,c2,V,varargin)
 %                           faces data from the surface (numFaces x 3 matrix)
 %    'anatomicalStruct'  : 'Cerebellum','CortexLeft','CortexRight'
 % OUTPUT:
-%    M                   : Gifti object- can be saved as a *.func.gii or *.label.gii file 
+%    G                   : Gifti object- can be saved as a *.func.gii or *.label.gii file 
 %    D:         Data structure that contains sparse double [numVox x numNodes] that counts the number of
 %               times each voxel is sampled to each node. For example,...
 %               ...if voxel 1 is sampled 6x to node 1 (i.e. the same voxel
