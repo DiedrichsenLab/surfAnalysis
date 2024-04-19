@@ -18,11 +18,12 @@ function G=surf_makeLabelGifti(data,varargin)
 anatomicalStruct = 'CortexLeft'; 
 columnNames     = {}; 
 labelRGBA       = []; 
+keys            = unique(data)'; 
 labelNames      = {}; 
-vararginoptions(varargin,{'anatomicalStruct','columnNames','labelNames','labelRGBA'}); 
+vararginoptions(varargin,{'anatomicalStruct','columnNames','labelNames', 'keys', 'labelRGBA'}); 
 
 [N,Q] = size(data);
-keys   = unique(data)'; 
+% keys   = unique(data)'; 
 nLabel = length(keys); % number of unique labels
 % Create naming and coloring if not given:
 % 1) Make column_names if empty 
